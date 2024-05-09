@@ -40,5 +40,5 @@ def my_sqrt(value: float, precision: float = None, max_iterations: int = 1_000) 
 
     return estimate
 
-def new_func(x):
-    return x**2
+def new_func(x,n):
+    return pow(x,n)
