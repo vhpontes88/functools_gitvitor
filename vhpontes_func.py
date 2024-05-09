@@ -39,3 +39,6 @@ def my_sqrt(value: float, precision: float = None, max_iterations: int = 1_000) 
         estimate = next_estimate
 
     return estimate
+
+def new_func(x):
+    return x**2
