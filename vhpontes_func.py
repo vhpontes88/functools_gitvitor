@@ -40,5 +40,12 @@ def my_sqrt(value: float, precision: float = None, max_iterations: int = 1_000) 
 
     return estimate
 
-def new_func(x,n):
-    return pow(x,n)
+def collatz(n):
+    count = 0
+    while n != 1:
+        if n % 2 == 0:
+            n = n // 2
+        else:
+            n = 3 * n + 1
+        count += 1
+    return count
