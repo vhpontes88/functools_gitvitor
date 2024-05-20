@@ -218,7 +218,7 @@ def Deriva(f, x0, epsilon=None):
     return (f(x0 + epsilon) - f(x0)) / epsilon
 
 
-def Newton(f, x0, tol=0.5e-6, max_iter=100):
+def Newton(f, x0, tol=0.5e-6, max_iter=100, completo=True):
     """
     Método de Newton para encontrar a raiz de f(x) a partir de x0.
 
@@ -227,6 +227,7 @@ def Newton(f, x0, tol=0.5e-6, max_iter=100):
     x0 (float): Valor inicial para a iteração.
     tol (float, optional): Tolerância para o critério de parada. Default é 0.5e-6.
     max_iter (int, optional): Número máximo de iterações. Default é 100.
+    completo: Opta por calcular a derivada em todos os passos ou apenas no primeiro
 
     Returns:
     dict: Contém a lista de valores 'x' gerados em cada iteração, a lista de razões de decremento relativo 'd_r', 
@@ -235,8 +236,11 @@ def Newton(f, x0, tol=0.5e-6, max_iter=100):
     x = [x0]
     d = [1]
     n = 0
+    deriv = Deriva(f, x[-1])
+    
     while abs(f(x[-1])) > tol and n < max_iter:
-        deriv = Deriva(f, x[-1])
+        if completo:
+            deriv = Deriva(f, x[-1])
         if deriv == 0:
             raise ValueError("Derivada zero encontrada, método de Newton falhou.")
         x_new = x[-1] - f(x[-1]) / deriv
@@ -246,12 +250,6 @@ def Newton(f, x0, tol=0.5e-6, max_iter=100):
     
     return {'x': x, 'd_r': d, 'n': n, 'x0': x[-1]}
 
-# Exemplo de uso da função Newton
-def funcao_teste(x):
-    return x**2 - 4
-
-resultado = Newton(funcao_teste, 3)
-print(f"Raiz encontrada: {resultado['x0']}, após {resultado['n']} iterações")
 
 
 
