@@ -197,6 +197,61 @@ def iteracao_f(f, x0, tol=1e-6, max_iter=100):
         x.append(x_new)
     return {'x_': x, 'x': x[-1], 'n': n}
 
+def Deriva(f, x0, epsilon=None):
+    """
+    Calcula a derivada numérica de f(x) em x0 usando o método da diferença finita.
+
+    Parameters:
+    f (function): Função contínua f(x).
+    x0 (float): Ponto onde a derivada será calculada.
+    epsilon (float, optional): Pequena variação para a diferença finita. Se None, será calculada automaticamente.
+
+    Returns:
+    float: Aproximação da derivada de f em x0.
+    """
+    if epsilon is None:
+        epsilon = 1.0
+        while 1.0 + epsilon != 1.0:
+            epsilon *= 0.5
+        epsilon = 10**6 * epsilon  # 2 * epsilon é o zero da máquina
+
+    return (f(x0 + epsilon) - f(x0)) / epsilon
+
+
+def Newton(f, x0, tol=0.5e-6, max_iter=100):
+    """
+    Método de Newton para encontrar a raiz de f(x) a partir de x0.
+
+    Parameters:
+    f (function): Função contínua f(x).
+    x0 (float): Valor inicial para a iteração.
+    tol (float, optional): Tolerância para o critério de parada. Default é 0.5e-6.
+    max_iter (int, optional): Número máximo de iterações. Default é 100.
+
+    Returns:
+    dict: Contém a lista de valores 'x' gerados em cada iteração, a lista de razões de decremento relativo 'd_r', 
+          o número de iterações 'n' e o valor final 'x0'.
+    """
+    x = [x0]
+    d = [1]
+    n = 0
+    while abs(f(x[-1])) > tol and n < max_iter:
+        deriv = Deriva(f, x[-1])
+        if deriv == 0:
+            raise ValueError("Derivada zero encontrada, método de Newton falhou.")
+        x_new = x[-1] - f(x[-1]) / deriv
+        x.append(x_new)
+        d.append(abs(x[-2] - x_new) / abs(x[-2]))
+        n += 1
+    
+    return {'x': x, 'd_r': d, 'n': n, 'x0': x[-1]}
+
+# Exemplo de uso da função Newton
+def funcao_teste(x):
+    return x**2 - 4
+
+resultado = Newton(funcao_teste, 3)
+print(f"Raiz encontrada: {resultado['x0']}, após {resultado['n']} iterações")
 
 
 
