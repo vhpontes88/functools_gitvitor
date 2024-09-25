@@ -25,7 +25,7 @@ def gera_plot1_bbce(produto, profile):
     # Defina o título como uma variável
     titulo_grafico = f"Análise de Preço e Volume com Regressão Linear - {produto}"
 
-
+    df = profile.copy()
 
     # Preparação da regressão linear (OLS) para o preço
     df_ols = df.ffill()
