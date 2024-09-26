@@ -103,7 +103,9 @@ def get_financial_data(start_date, end_date):
 ###
 
 def consulta_PLD_CCEE():
-    res = pd.read_html('https://www.ccee.org.br/login/pages/pld/')
+    url = 'https://www.ccee.org.br/login/pages/pld/'
+    res = pd.read_html(url)
+    r = requests.get(url)
     d0 = max(list(map( lambda s: pd.to_datetime(s,format='%d/%m/%Y'), re.findall( '.*(\d{2}\/\d{2}\/\d{4}).*' , r.content.decode() )))).strftime('%Y-%m-%d')
     res = (res[-1].set_index('Hora')/100)
     res.index = pd.date_range(start=d0, periods=len(res), freq='H')
