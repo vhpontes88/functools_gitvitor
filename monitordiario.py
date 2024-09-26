@@ -1,4 +1,4 @@
-import os,re, requests, sys
+import os,re, requests, sys, datetime
 
 import yfinance as yf
 import numpy as np
@@ -9,6 +9,9 @@ import plotly.graph_objects as go
 import plotly.io as pio
 
 from sklearn.linear_model import LinearRegression
+
+import httpimport
+import mysql.connector
 
 ###
 class Perfil_bbce:
@@ -96,3 +99,37 @@ def get_financial_data(start_date, end_date):
     data.columns = tickers.keys()
     
     return data
+
+###
+
+def consulta_PLD_CCEE():
+    res = pd.read_html('https://www.ccee.org.br/login/pages/pld/')
+    d0 = max(list(map( lambda s: pd.to_datetime(s,format='%d/%m/%Y'), re.findall( '.*(\d{2}\/\d{2}\/\d{4}).*' , r.content.decode() )))).strftime('%Y-%m-%d')
+    res = (res[-1].set_index('Hora')/100)
+    res.index = pd.date_range(start=d0, periods=len(res), freq='H')
+    return res
+
+def consulta_BD_PLD(D):
+    conn = mysql.connector.connect(
+    host=D_RDS.get("host"),
+    user=D_RDS.get("user"),
+    passwd=D_RDS.get("password"),
+    database=D_RDS.get("database")
+    )
+
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM PLD")
+    columns = [desc[0] for desc in cursor.description]
+    data = cursor.fetchall()
+    df_pld = pd.DataFrame(data,columns=columns)
+    conn.close()
+
+    df_pld['Data'] = pd.to_datetime(df_pld['Data'])
+    df_pld = df_pld.set_index('Data')
+    df_pld.loc[:,'CMO_DC_SE':] = df_pld.loc[:,'CMO_DC_SE':].astype(float)
+    df_pld = df_pld.sort_index()
+    return df_pld
+    
+
+
+
