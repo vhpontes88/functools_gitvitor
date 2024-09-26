@@ -111,7 +111,7 @@ def consulta_PLD_CCEE():
     res.index = pd.date_range(start=d0, periods=len(res), freq='H')
     return res
 
-def consulta_BD_PLD(D):
+def consulta_BD_PLD(D_RDS):
     conn = mysql.connector.connect(
     host=D_RDS.get("host"),
     user=D_RDS.get("user"),
