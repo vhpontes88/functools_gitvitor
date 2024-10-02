@@ -19,7 +19,7 @@ class Perfil_bbce:
         self.df_bbce = df_bbce
 
 
-def profile_bbce(df, produto, freq='5t'):
+def profile_bbce(df, produto, freq='5min'):
     df_out = df.groupby('nome').get_group(produto).loc[:,['createdAt','quantity','unitPrice','originOperationType_Match','tendency_Compra']].set_index('createdAt').resample(freq).agg({'quantity':['sum','size'],'unitPrice':'median','originOperationType_Match':'mean','tendency_Compra':'mean'})
     df_out.columns = [f'{col[0]}_{col[1]}' for col in df_out.columns]
     return df_out 
@@ -108,7 +108,7 @@ def consulta_PLD_CCEE():
     r = requests.get(url)
     d0 = max(list(map( lambda s: pd.to_datetime(s,format='%d/%m/%Y'), re.findall( '.*(\d{2}\/\d{2}\/\d{4}).*' , r.content.decode() )))).strftime('%Y-%m-%d')
     res = (res[-1].set_index('Hora')/100)
-    res.index = pd.date_range(start=d0, periods=len(res), freq='H')
+    res.index = pd.date_range(start=d0, periods=len(res), freq='h')
     return res
 
 def consulta_BD_PLD(D_RDS):
