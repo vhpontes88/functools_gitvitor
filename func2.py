@@ -34,7 +34,7 @@ def print_matriz(A):
     else:
         return pd.DataFrame(A).astype(int)
 
-def cramer(i, A):
+def cramer(i, A,b):
     """
     Calcula a solução do sistema linear Ax = b usando a Regra de Cramer para a incógnita de índice `i`.
 
@@ -48,6 +48,9 @@ def cramer(i, A):
         O índice da incógnita que se deseja calcular usando a Regra de Cramer.
     A : array-like
         A matriz de coeficientes do sistema linear.
+
+    b : array-like
+        A matriz coluna de valores do outro lado da igualdade do sistema Ax=b.
 
     Retorno:
     -------
