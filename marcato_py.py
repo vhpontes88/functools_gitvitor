@@ -202,20 +202,32 @@ def run_sdp(
     system: SystemData,
     plot_fcf: bool = False,
     verbose: bool = False,
-) -> List[Dict[str, Any]]:
+) -> Tuple[List[Dict[str, Any]], Dict[int, float]]:
     """
     Roda o backward para construir cortes para todos os estágios.
+    Além dos cortes, calcula e retorna o CMO médio de cada estágio.
+
+    Retorna:
+        cuts: lista de cortes (inequações)
+        cmo_por_estagio: dicionário {estagio: CMO médio}
     """
     nH = len(system.UHE)
-    cuts: List[Dict[str, Any]] = []  # lista de dicts {Estagio, Coefs, Termo_Indep}
+    cuts: List[Dict[str, Any]] = []
     discretizacoes = build_discretizations(system)
 
+    cmo_por_estagio: Dict[int, float] = {}
+
     t0 = time.time()
+    # loop backward
     for s in range(system.DGer.Nr_Est - 1, -1, -1):
         if verbose:
             print(f"Estágio {s} (0-based)")
 
-        # Plot opcional da FCF
+        # acumula CMO em todas as discretizações/cenários
+        cmo_sum = 0.0
+        ncen_total = len(discretizacoes) * system.DGer.Nr_Cen
+
+        # variáveis auxiliares para plot
         if plot_fcf and nH == 1:
             xs, ys = [], []
         if plot_fcf and nH == 2:
@@ -229,34 +241,41 @@ def run_sdp(
         for disc in discretizacoes:
             VI = volume_from_percentages(system.UHE, disc)
 
-            # Média sobre cenários (equiprováveis)
+            # médias
             cost_sum = 0.0
             cma_sum = np.zeros(nH)
+
             for k in range(system.DGer.Nr_Cen):
                 AFL = [system.UHE[i].Afl[s][k] for i in range(nH)]
                 sol = solve_stage(system, s, VI, AFL, cuts)
-                cost_sum += sol["objective"]
-                cma_sum += np.array(sol["CMA"])  # duais do balanço hídrico
 
+                cost_sum += sol["objective"]
+                cma_sum += np.array(sol["CMA"])
+                cmo_sum += sol["CMO"]  # acumula CMO
+
+            # médias por discretização
             cost_avg = cost_sum / system.DGer.Nr_Cen
             cma_avg = cma_sum / system.DGer.Nr_Cen
 
-            # Coeficientes do corte: a = - E[CMA], b = cost_avg - sum(VI * a)
+            # corte
             a = (-cma_avg).tolist()
             b = float(cost_avg - np.dot(VI, a))
-
             cut = {"Estagio": s, "Coefs": a, "Termo_Indep": b}
             cuts.append(cut)
 
+            # plot
             if plot_fcf and nH == 1:
                 xs.append(VI[0])
                 ys.append(cost_avg)
             if plot_fcf and nH == 2:
-                # Preenche a superfície Z no ponto correspondente
                 i = int(round((disc[0]/100.0) * (system.DGer.Nr_Disc - 1)))
                 j = int(round((disc[1]/100.0) * (system.DGer.Nr_Disc - 1)))
                 Z[j, i] = cost_avg
 
+        # calcula CMO médio do estágio
+        cmo_por_estagio[s] = cmo_sum / ncen_total
+
+        # plot
         if plot_fcf and nH == 1:
             import matplotlib.pyplot as plt
             plt.figure(figsize=(6,4))
@@ -282,7 +301,9 @@ def run_sdp(
 
     if verbose:
         print(f"Tempo total (backward): {time.time() - t0:.3f} s")
-    return cuts
+
+    return cuts, cmo_por_estagio
+
 
 
 # =============================
